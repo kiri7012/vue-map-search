@@ -1,7 +1,7 @@
 {
   "name": "vue-map-search",
   "description": "A map search project",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "author": "lifefriend <nnhjgg@gmail.com>",
   "main": "dist/vue-map-search.js",
   "license": "MIT",

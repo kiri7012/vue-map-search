@@ -242,7 +242,9 @@ function saveData(key, value) {
     let preDta = fetchData(key);
     if (preDta) {
       let data2 = duplicateData(preDta, value[0].name);
-      data2 && value.concat(data2);
+      if(data2.length >0 ){
+        value = value.concat(data2);
+      }  
     }
     value = JSON.stringify(value);
     storage.setItem(key, value);
@@ -293,8 +295,14 @@ function fetchData(key) {
 function clearData(key, value) {
   var data = fetchData(key);
   var arr = [];
-  for (let i = 0; i < data.length; i++) {}
-  //saveData(key, arr);
+  for (let i = 0; i < data.length; i++) {
+    if(data[i].name===value){
+
+    }else{
+      arr.push(data[i]);
+    }
+  }
+  saveData(key, arr);
 }
 function notify(type, coordinate, opts) {
   self.xyChange({
