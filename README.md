@@ -2,15 +2,14 @@
 
 > A map search project
 
-# run 
-
-npm run dev
-
 ## Build Setup
 
 ``` bash
 # install dependencies
 npm install vue-map-search --save
+
+# run 
+npm run dev
 
 # use 
 
