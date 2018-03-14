@@ -10,7 +10,7 @@
       <div class="search-div">
         <ul class="searchResult">
 				 <li v-for="suggestTxt in suggestResults" @click="doSuggest(suggestTxt.name)">{{suggestTxt.name}}<span>{{suggestTxt.address}}</span></li>
-			 </ul>
+			  </ul>
       </div>
       <div class="search-div" v-show="searchPanel">
 			 <span class="close-ico" @click="closeSearchPanel()"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAADFUlEQVRYR+2WXVITQRSFEwLhRQ0uQMgKBN0AgXd/WAGyAA08AMWT8JQfqoiugGQHoAsAdAOh9N2gGwjqC4QfvzPVbXUmPcNkrJIXumpqkp6+95w+997um83c8sjeMn7mjkAqBer1+gyhK/DMZLPZzvX1dXdsbOx4ZWWlO2xIExOoVCrFXC73FrB5QCYB/ovFXEb/ee8xube+vt5KSiQRAXb8DodlB+gYwEPtXED8Ll1dXT0dGRm5b9a0mV5aW1vTO3bEEmg0GhO9Xu9AUgPwC6Ad3s2NjY2Oz2utVnvJ/CbrpiGi9W8g0YxjEEnABcfB18vLy2dRwGEAiIiEwqVPC4REofGOSAI4aeJkESfH+Xy+NGyCEbZXIO6i2E98TEeR9xLY3t4uYXQg4/Hx8SmBQ2iZGBdWV1e3onZjqqOMWlsCVO7gp2wSc8Fn5yWA4SGLZ00iBTFkTnGf4mkS16WwM4EDJrsCROcgeqgwnp2dnfD/AfNPfEk5QMCU2zcMfmAwaYEEgCJHxlkfCQtOyAqQaBFzyR8MKcerwbf3+NPvvjFAQLHDyS6r+hwZFQZIxIHLRhuCtDb0HWJSMJ6AzWBWqY6bPqmtEhD9wPdZ385du2q1eirl8DewYZ8CKpkXOA3iGCbgKPEZp/f0Pyy7h7T8zHJcPwxXU2oCgH6CpD35vIlpidikTkQgSQiU7ZKdUHzUznyJ6aoAgeBEShqC2CS04Fb2uOpwkxDCJxAo3piEtgwB6MvauGyPIzF0GZokC5LGrQQcdeOy3ZJgjQ6d4PzXQXR+ft6RHXPJDiIRsEcxKpxyDxTtUcynCRxv+irDVgc2y+TGpnsUQ2Af+XVTDozYy4jVixi3yd65NJeRDjRdyzyPh7qMRNPIp1BMQ+ILF8zz/3oduyTUYOhmpCXbubi4aMU1JKYP0MX0m/J8nbohcYPlNhimF1Sr1VZDqnWABS2ZSUC1aEdML/9zS+aSMJeKOp15AB/5mlLW7/Ps3bRr12+ipjScuio5CEywa7XnHaTujo6OtodNVPlNRSCqDNPM3xG4dQX+AKveLj9+YY8HAAAAAElFTkSuQmCC"></span> 
@@ -31,6 +31,7 @@ import * as maptalks from "maptalks";
 import Axios from "axios";
 
 let myMap, markerLyr, self, timeInteval;
+const SAVE_KEY = "history_search";
 export default {
   name: "vueMapSearch",
   props: {
@@ -66,6 +67,7 @@ export default {
       search(txt);
     },
     addPointIco(obj) {
+      saveData(SAVE_KEY, obj);
       var xys = obj.lonlat.split(" ");
       drawPoint(xys[0], xys[1]);
     },
@@ -102,7 +104,17 @@ function suggest(txt) {
     });
 }
 function resolveSuggestResult(obj) {
-  self.suggestResults = obj.suggests || [];
+  let data = filterData(SAVE_KEY, self.inpuTxt);
+  let result = obj.suggests;
+  if (obj.suggests) {
+    for (let index = 0; index < data.length; index++) {
+      const element = data[index];
+      result = duplicateData(result, element.name);
+      if (result.length == 0) break;
+    }
+    data = data.concat(result);
+  }
+  self.suggestResults = data;
 }
 function search(txt) {
   self.searchPanel = false;
@@ -132,7 +144,17 @@ function resolveResult(json) {
     if (json.pois.length === 1) {
       self.addPointIco(json.pois[0]);
     } else {
-      self.searchResults = json.pois;
+      let data = filterData(SAVE_KEY, self.inpuTxt);
+      let result = json.pois;
+      if (result) {
+        for (let index = 0; index < data.length; index++) {
+          const element = data[index];
+          result = duplicateData(result, element.name);
+          if (result.length == 0) break;
+        }
+        data = data.concat(result);
+      }
+      self.searchResults = data;
       self.searchPanel = true;
     }
   }
@@ -205,6 +227,74 @@ function initMap() {
     notify("click", coordinate);
   });
   drawPoint(self.x, self.y);
+}
+function saveData(key, value) {
+  if (!window.localStorage) {
+    console.log("not support localstorage");
+    return false;
+  } else if (key) {
+    if (!value) return false;
+    var storage = window.localStorage;
+    if (value instanceof Array) {
+    } else {
+      value = [value];
+    }
+    let preDta = fetchData(key);
+    if (preDta) {
+      let data2 = duplicateData(preDta, value[0].name);
+      data2 && value.concat(data2);
+    }
+    value = JSON.stringify(value);
+    storage.setItem(key, value);
+  } else {
+    console.log("no data");
+    return false;
+  }
+}
+function filterData(key, value) {
+  let array = fetchData(key);
+  let arr = [];
+  if (!value || value == "") return arr;
+  for (let index = 0; index < array.length; index++) {
+    const element = array[index];
+    if (element.name && element.name.indexOf(value) >= 0) {
+      arr.push(element);
+    }
+  }
+  return arr;
+}
+function duplicateData(array, value) {
+  let arr = [];
+  for (let index = 0; index < array.length; index++) {
+    const element = array[index];
+    if (element.name === value) {
+    } else {
+      arr.push(element);
+    }
+  }
+  return arr;
+}
+function fetchData(key) {
+  if (!window.localStorage) {
+    console.log("not support localstorage");
+    return false;
+  } else if (key) {
+    let storage = window.localStorage;
+    let data = storage.getItem(key);
+    if (!data) {
+      return [];
+    }
+    return JSON.parse(data);
+  } else {
+    console.log("no key");
+    return false;
+  }
+}
+function clearData(key, value) {
+  var data = fetchData(key);
+  var arr = [];
+  for (let i = 0; i < data.length; i++) {}
+  //saveData(key, arr);
 }
 function notify(type, coordinate, opts) {
   self.xyChange({
