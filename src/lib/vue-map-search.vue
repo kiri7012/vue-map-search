@@ -1,27 +1,34 @@
 <template>
   <section class="main-wrapper">
     <header class="header-wrapper">
-    <div class="search bar6">
+      <div class="search bar6">
         <div class="form-div">
-            <input type="text" v-model="inpuTxt" v-on:input="change" placeholder="请输入内容">
-            <button type="submit" @click="doSearch()"></button>
+          <input type="text" v-model="inpuTxt" v-on:input="change" placeholder="请输入内容">
+          <!--<button type="submit" @click="doSearch()"></button>-->
+          <span @click="clearText">×</span>
         </div>
-    </div>
+      </div>
       <div class="search-div">
-        <ul class="searchResult">
-				 <li v-for="suggestTxt in suggestResults" @click="doSuggest(suggestTxt.name)">{{suggestTxt.name}}<span>{{suggestTxt.address}}</span></li>
-			  </ul>
+        <!--:class="{'dealing':item.userHandler=='1'}"-->
+        <ul class="searchResult" :class="{'dealing':loadMore}">
+          <li v-for="suggestTxt in suggestResults" @click="doSuggest(suggestTxt.name)">
+            <p><span></span>{{suggestTxt.name}}</p>
+            <span>{{suggestTxt.address}}</span></li>
+        </ul>
+        <p class="more" v-show="loadMore" @click="addMore">加载更多</p>
       </div>
       <div class="search-div" v-show="searchPanel">
-			 <span class="close-ico" @click="closeSearchPanel()"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAADFUlEQVRYR+2WXVITQRSFEwLhRQ0uQMgKBN0AgXd/WAGyAA08AMWT8JQfqoiugGQHoAsAdAOh9N2gGwjqC4QfvzPVbXUmPcNkrJIXumpqkp6+95w+997um83c8sjeMn7mjkAqBer1+gyhK/DMZLPZzvX1dXdsbOx4ZWWlO2xIExOoVCrFXC73FrB5QCYB/ovFXEb/ee8xube+vt5KSiQRAXb8DodlB+gYwEPtXED8Ll1dXT0dGRm5b9a0mV5aW1vTO3bEEmg0GhO9Xu9AUgPwC6Ad3s2NjY2Oz2utVnvJ/CbrpiGi9W8g0YxjEEnABcfB18vLy2dRwGEAiIiEwqVPC4REofGOSAI4aeJkESfH+Xy+NGyCEbZXIO6i2E98TEeR9xLY3t4uYXQg4/Hx8SmBQ2iZGBdWV1e3onZjqqOMWlsCVO7gp2wSc8Fn5yWA4SGLZ00iBTFkTnGf4mkS16WwM4EDJrsCROcgeqgwnp2dnfD/AfNPfEk5QMCU2zcMfmAwaYEEgCJHxlkfCQtOyAqQaBFzyR8MKcerwbf3+NPvvjFAQLHDyS6r+hwZFQZIxIHLRhuCtDb0HWJSMJ6AzWBWqY6bPqmtEhD9wPdZ385du2q1eirl8DewYZ8CKpkXOA3iGCbgKPEZp/f0Pyy7h7T8zHJcPwxXU2oCgH6CpD35vIlpidikTkQgSQiU7ZKdUHzUznyJ6aoAgeBEShqC2CS04Fb2uOpwkxDCJxAo3piEtgwB6MvauGyPIzF0GZokC5LGrQQcdeOy3ZJgjQ6d4PzXQXR+ft6RHXPJDiIRsEcxKpxyDxTtUcynCRxv+irDVgc2y+TGpnsUQ2Af+XVTDozYy4jVixi3yd65NJeRDjRdyzyPh7qMRNPIp1BMQ+ILF8zz/3oduyTUYOhmpCXbubi4aMU1JKYP0MX0m/J8nbohcYPlNhimF1Sr1VZDqnWABS2ZSUC1aEdML/9zS+aSMJeKOp15AB/5mlLW7/Ps3bRr12+ipjScuio5CEywa7XnHaTujo6OtodNVPlNRSCqDNPM3xG4dQX+AKveLj9+YY8HAAAAAElFTkSuQmCC"></span> 
-			 <ul class="searchResult">
-				 <li v-for="searchTxt in searchResults" @click="addPointIco(searchTxt)">{{searchTxt.name}}<span>{{searchTxt.address}}</span></li>
-			 </ul>
-		 </div>
+        <span class="close-ico" @click="closeSearchPanel()"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAADFUlEQVRYR+2WXVITQRSFEwLhRQ0uQMgKBN0AgXd/WAGyAA08AMWT8JQfqoiugGQHoAsAdAOh9N2gGwjqC4QfvzPVbXUmPcNkrJIXumpqkp6+95w+997um83c8sjeMn7mjkAqBer1+gyhK/DMZLPZzvX1dXdsbOx4ZWWlO2xIExOoVCrFXC73FrB5QCYB/ovFXEb/ee8xube+vt5KSiQRAXb8DodlB+gYwEPtXED8Ll1dXT0dGRm5b9a0mV5aW1vTO3bEEmg0GhO9Xu9AUgPwC6Ad3s2NjY2Oz2utVnvJ/CbrpiGi9W8g0YxjEEnABcfB18vLy2dRwGEAiIiEwqVPC4REofGOSAI4aeJkESfH+Xy+NGyCEbZXIO6i2E98TEeR9xLY3t4uYXQg4/Hx8SmBQ2iZGBdWV1e3onZjqqOMWlsCVO7gp2wSc8Fn5yWA4SGLZ00iBTFkTnGf4mkS16WwM4EDJrsCROcgeqgwnp2dnfD/AfNPfEk5QMCU2zcMfmAwaYEEgCJHxlkfCQtOyAqQaBFzyR8MKcerwbf3+NPvvjFAQLHDyS6r+hwZFQZIxIHLRhuCtDb0HWJSMJ6AzWBWqY6bPqmtEhD9wPdZ385du2q1eirl8DewYZ8CKpkXOA3iGCbgKPEZp/f0Pyy7h7T8zHJcPwxXU2oCgH6CpD35vIlpidikTkQgSQiU7ZKdUHzUznyJ6aoAgeBEShqC2CS04Fb2uOpwkxDCJxAo3piEtgwB6MvauGyPIzF0GZokC5LGrQQcdeOy3ZJgjQ6d4PzXQXR+ft6RHXPJDiIRsEcxKpxyDxTtUcynCRxv+irDVgc2y+TGpnsUQ2Af+XVTDozYy4jVixi3yd65NJeRDjRdyzyPh7qMRNPIp1BMQ+ILF8zz/3oduyTUYOhmpCXbubi4aMU1JKYP0MX0m/J8nbohcYPlNhimF1Sr1VZDqnWABS2ZSUC1aEdML/9zS+aSMJeKOp15AB/5mlLW7/Ps3bRr12+ipjScuio5CEywa7XnHaTujo6OtodNVPlNRSCqDNPM3xG4dQX+AKveLj9+YY8HAAAAAElFTkSuQmCC"></span>
+        <ul class="searchResult">
+          <li v-for="searchTxt in searchResults" @click="addPointIco(searchTxt)">
+            <p>{{searchTxt.name}}</p>
+            <span>{{searchTxt.address}}</span></li>
+        </ul>
+      </div>
     </header>
     <main class="map-wrapper">
       <div id="map"></div>
-    </main>       
+    </main>
   </section>
 </template>
 
@@ -54,12 +61,20 @@ export default {
       searchPanel: false,
       searchResults: [],
       suggestTxt: "",
-      suggestResults: []
+      suggestResults: [],
+      loadMore: false
     };
   },
   methods: {
-    doSearch() {
-      search(this.inpuTxt);
+//    doSearch() {
+//      search(this.inpuTxt);
+//    },
+    addMore() {
+      this.loadMore = false
+    },
+    clearText() {
+      this.inpuTxt = ''
+      this.change()
     },
     doSuggest(txt) {
       this.inpuTxt = txt;
@@ -106,6 +121,11 @@ function suggest(txt) {
 function resolveSuggestResult(obj) {
   let data = filterData(SAVE_KEY, self.inpuTxt);
   let result = obj.suggests;
+  if(self.suggestResults.length > 5) {
+    self.loadMore = true
+  }else {
+    self.loadMore = false
+  }
   if (obj.suggests) {
     for (let index = 0; index < data.length; index++) {
       const element = data[index];
@@ -244,7 +264,7 @@ function saveData(key, value) {
       let data2 = duplicateData(preDta, value[0].name);
       if(data2.length >0 ){
         value = value.concat(data2);
-      }  
+      }
     }
     value = JSON.stringify(value);
     storage.setItem(key, value);
@@ -314,110 +334,145 @@ function notify(type, coordinate, opts) {
 </script>
 
 <style>
-.form-div {
-  position: relative;
-  width: 100%;
-  background-color: #fff;
-}
-input,
-button {
-  border: none;
-  outline: none;
-}
-input {
-  width: 100%;
-  height: 42px;
-  padding-left: 13px;
-}
-button {
-  height: 42px;
-  width: 42px;
-  cursor: pointer;
-  position: absolute;
-}
-/*搜索框6*/
-
-.bar6 input {
-  border: 2px solid #08c;
-  border-radius: 5px;
-  background: transparent;
-  top: 0;
-  right: 0;
-  font-size: 18px;
-  box-sizing: border-box;
-}
-.bar6 button {
-  background: #08c;
-  border-radius: 0 5px 5px 0;
-  width: 60px;
-  top: 0;
-  right: 0;
-}
-.bar6 button:before {
-  content: "搜索";
-  font-size: 13px;
-  color: #f9f0da;
-}
-main,
-section {
-  display: block;
-}
-.main-wrapper {
-  width: 100vw;
-  height: 100vh;
-  position: relative;
-}
-.header-wrapper,
-.map-wrapper {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-}
-.header-wrapper {
-  position: absolute;
-  z-index: 1;
-  width: 100%;
-  height: 46px;
-  top: 0;
-}
-#map {
-  width: 100%;
-  height: 100%;
-}
-.maptalks-attribution {
-  display: none;
-}
-.search-div {
-  position: relative;
-  background-color: white;
-}
-.search-div > span > img {
-  display: block;
-}
-.searchResult {
-  margin: 0;
-  padding: 0;
-  max-height: 280px;
-  overflow-y: auto;
-}
-.searchResult > li {
-  cursor: pointer;
-  padding: 2px 10px;
-  font-size: 15px;
-  list-style-type: none;
-}
-.searchResult > li:hover {
-  background-color: #f5f5f5;
-}
-.searchResult > li > span {
-  color: #ccc;
-  font-size: 13px;
-}
-.close-ico {
-  position: absolute;
-  right: 5px;
-  cursor: pointer;
-  z-index: 3;
-}
+  .form-div {
+    position: relative;
+    width: 100%;
+    background-color: #fff;
+    padding: 5px 10px;
+    box-sizing: border-box;
+  }
+  .form-div span {
+    position: absolute;
+    top: 12px;
+    right: 22px;
+    width: 40;
+    width: 16px;
+    height: 16px;
+    background: rgba(44,44,44,.3);
+    border-radius: 50%;
+    text-align: center;
+    line-height: 16px;
+    color: #fff;
+  }
+  input,
+  button {
+    border: none;
+    outline: none;
+  }
+  input {
+    width: 100%;
+    height: 30px;
+    padding-left: 13px;
+  }
+  button {
+    height: 30px;
+    width: 42px;
+    cursor: pointer;
+    position: absolute;
+  }
+  /*搜索框6*/
+  .more {
+    margin: 0;
+    text-align: center;
+    color: #aaa;
+    padding: 5px 0;
+    font-size: 14px;
+  }
+  .bar6 input {
+    border: 1px solid #d2d4d5;
+    border-radius: 5px;
+    background: transparent;
+    font-size: 14px;
+    box-sizing: border-box;
+  }
+  .bar6 button {
+    background: #08c;
+    border-radius: 0 5px 5px 0;
+    width: 60px;
+    top: 5px;
+    right: 10px;
+  }
+  .bar6 button:before {
+    content: "搜索";
+    font-size: 13px;
+    color: #f9f0da;
+  }
+  main,
+  section {
+    display: block;
+  }
+  .main-wrapper {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+  }
+  .header-wrapper,
+  .map-wrapper {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .header-wrapper {
+    position: absolute;
+    z-index: 1;
+    width: 100%;
+    height: 46px;
+    top: 0;
+  }
+  #map {
+    width: 100%;
+    height: 100%;
+  }
+  .maptalks-attribution {
+    display: none;
+  }
+  .search-div {
+    position: relative;
+    background-color: white;
+  }
+  .search-div > span > img {
+    display: block;
+  }
+  .searchResult {
+    margin: 0;
+    padding: 0;
+    /*max-height: 280px;*/
+    /*overflow-y: auto;*/
+    overflow: hidden;
+  }
+  .searchResult.dealing {
+    max-height: 400px;
+  }
+  .searchResult > li {
+    cursor: pointer;
+    padding: 2px 10px;
+    font-size: 15px;
+    list-style-type: none;
+  }
+  .searchResult > li:hover {
+    background-color: #f5f5f5;
+  }
+  .searchResult > li > span {
+    color: #ccc;
+    font-size: 13px;
+    padding-left: 25px;
+  }
+  .searchResult > li > p {
+    margin: 0;
+  }
+  .searchResult > li > p > span {
+    display: inline-block;
+    margin-right: 9px;
+    width: 16px;
+    height: 16px;
+    background: url("../../dist/search.png") no-repeat;
+    vertical-align: middle;
+  }
+  .close-ico {
+    position: absolute;
+    right: 5px;
+    cursor: pointer;
+    z-index: 3;
+  }
 </style>
