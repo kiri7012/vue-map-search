@@ -8,9 +8,6 @@
 # install dependencies
 npm install vue-map-search --save
 
-# run 
-npm run dev
-
 # use 
 
 // ES6
@@ -30,4 +27,12 @@ Vue.use(vueMapSearch)
 //or
 <vue-map-search :x="110" :y="32" :xyChange="whenChange"></vue-map-search>
 
+## use code
+git clone 
+
+cd vue-map-search
+
+npm install
+
+npm run dev
 
