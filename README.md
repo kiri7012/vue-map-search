@@ -2,6 +2,10 @@
 
 > A map search project
 
+# run 
+
+npm run dev
+
 ## Build Setup
 
 ``` bash
